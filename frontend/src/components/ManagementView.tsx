@@ -234,7 +234,7 @@ export default function ManagementView({
                          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                        </div>
                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t.date ? new Date(t.date + (t.date.endsWith('Z') ? '' : 'Z')).toLocaleDateString() : ''}</span>
+                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t.date ? new Date(t.date).toLocaleDateString() : ''}</span>
                          <button onClick={() => handleDeleteTransaction(t.id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '2px' }}><Trash2 size={16}/></button>
                        </div>
                     </div>

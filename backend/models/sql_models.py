@@ -51,6 +51,9 @@ class User(Base):
 
 class Client(Base):
     __tablename__ = "clients"
+    __table_args__ = (
+        Index("idx_clients_user_id", "user_id"),
+    )
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     name = Column(String, nullable=False)
@@ -94,6 +97,9 @@ class ClientFeeEvent(Base):
 
 class Portfolio(Base):
     __tablename__ = "portfolios"
+    __table_args__ = (
+        Index("idx_portfolios_client_id", "client_id"),
+    )
     id = Column(Integer, primary_key=True, index=True)
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)  # NULL = personal/pool
     name = Column(String, nullable=False, default="Main Pool")

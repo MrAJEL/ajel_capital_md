@@ -17,7 +17,13 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 logger = logging.getLogger(__name__)
 
 # ── Secrets from environment only ─────────────────────────────────────────────
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "ajel-dev-secret-change-in-production-2026")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    import sys
+    if os.getenv("ENVIRONMENT", "development") == "production":
+        raise ValueError("JWT_SECRET_KEY must be set in production environment")
+    SECRET_KEY = "ajel-dev-secret-change-in-production-2026"
+    logger.warning("⚠️  Using default JWT secret — set JWT_SECRET_KEY in production!")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("TOKEN_EXPIRE_MINUTES", "480"))  # 8 hours
 

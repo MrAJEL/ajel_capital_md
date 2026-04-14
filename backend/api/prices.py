@@ -4,7 +4,7 @@ AJEL Capital — Prices API Router
 All external market data calls are proxied through here.
 The browser NEVER calls Yahoo/CoinGecko/FMP directly — keys stay server-side.
 """
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Query, Request, HTTPException
 from typing import List, Optional
 import logging
 
@@ -36,9 +36,9 @@ async def get_prices_batch(request: Request, symbols: str = Query(..., descripti
     """
     sym_list = [s.strip().upper() for s in symbols.split(",") if s.strip()]
     if not sym_list:
-        return {"error": "No symbols provided"}
+        raise HTTPException(status_code=400, detail="No symbols provided")
     if len(sym_list) > 50:
-        return {"error": "Max 50 symbols per request"}
+        raise HTTPException(status_code=400, detail="Max 50 symbols per request")
 
     results = await _data_client.fetch_prices_batch(sym_list)
     return {"prices": results, "count": len(results)}

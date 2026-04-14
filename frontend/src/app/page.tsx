@@ -33,8 +33,14 @@ export default function App() {
   const [clients, setClients] = useState<any[]>([]);
   const [livePrices, setLivePrices] = useState<Record<string, any>>({});
   
-  // Watchlist
-  const [watchlistSymbols, setWatchlistSymbols] = useState<string[]>(['AAPL', 'MSFT', 'BTC-USD', 'NVDA', 'TSLA']);
+  // Watchlist — persisted to localStorage so it survives page refresh
+  const [watchlistSymbols, setWatchlistSymbols] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return ['AAPL', 'MSFT', 'BTC-USD', 'NVDA', 'TSLA'];
+    try {
+      const saved = localStorage.getItem('ajel_watchlist');
+      return saved ? JSON.parse(saved) : ['AAPL', 'MSFT', 'BTC-USD', 'NVDA', 'TSLA'];
+    } catch { return ['AAPL', 'MSFT', 'BTC-USD', 'NVDA', 'TSLA']; }
+  });
   const [watchlistPrices, setWatchlistPrices] = useState<Record<string, any>>({});
   const [watchlistScores, setWatchlistScores] = useState<Record<string, any>>({});
   const [newSymbol, setNewSymbol] = useState('');
@@ -48,6 +54,13 @@ export default function App() {
   });
   const [isSubmittingTxn, setIsSubmittingTxn] = useState(false);
   const [isCreatingClient, setIsCreatingClient] = useState(false);
+
+  // Persist watchlist to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ajel_watchlist', JSON.stringify(watchlistSymbols));
+    }
+  }, [watchlistSymbols]);
 
   // Refs
   const refreshTimer = useRef<NodeJS.Timeout | null>(null);
@@ -165,7 +178,10 @@ export default function App() {
   const handleCreateTransaction = async () => {
     // Use portfolio_id from form, or fallback to activePortfolio
     const portfolioId = activeTxnForm.portfolio_id || activePortfolio;
-    if (!portfolioId) return;
+    if (!portfolioId) {
+      alert('Please select a portfolio before adding a transaction.');
+      return;
+    }
 
     const txType = (activeTxnForm.type || 'BUY').toUpperCase();
     const isDepositLike = ['DEPOSIT', 'WITHDRAWAL', 'FEE'].includes(txType);
@@ -221,6 +237,17 @@ export default function App() {
     try {
        await api.deleteClient(id);
        loadClients();
+       // If the deleted client owned the active portfolio, reset it
+       const deletedClientPortfolioIds = portfolios
+         .filter((p: any) => p.client_id === id)
+         .map((p: any) => p.id);
+       if (activePortfolio && deletedClientPortfolioIds.includes(activePortfolio)) {
+         const remaining = portfolios.filter((p: any) => p.client_id !== id);
+         setActivePortfolio(remaining.length > 0 ? remaining[0].id : null);
+         setActivePositions([]);
+         setTransactions([]);
+       }
+       loadPortfolios();
     } catch (e) { console.error(e) }
   };
 
@@ -260,6 +287,8 @@ export default function App() {
   let totalRealizedPnL = 0;
 
   activePositions.forEach((p: any) => {
+    // Guard: skip positions with invalid or missing data
+    if (!p.symbol || !p.qty || p.qty <= 0) return;
     const currentPrice = livePrices[p.symbol]?.price || p.avg_cost;
     const invested = p.avg_cost * p.qty;
     const mv = currentPrice * p.qty;

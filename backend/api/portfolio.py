@@ -17,7 +17,7 @@ from data.market_data import MarketDataClient
 import asyncio
 from database import get_db
 from models.sql_models import Portfolio, Transaction, Position, Client, PortfolioHistory
-from core.security import get_current_user_optional
+from core.security import get_current_user_optional, get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -103,7 +103,7 @@ class PositionResponse(BaseModel):
 # ── Portfolio CRUD ────────────────────────────────────────────────────────────
 
 @router.get("/portfolios")
-async def list_portfolios(db: Session = Depends(get_db)):
+async def list_portfolios(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """List all portfolios with client name join."""
     portfolios = db.query(Portfolio).filter(Portfolio.is_active == True).all()
     result = []
@@ -119,7 +119,7 @@ async def list_portfolios(db: Session = Depends(get_db)):
 
 
 @router.post("/portfolios")
-async def create_portfolio(data: PortfolioCreate, db: Session = Depends(get_db)):
+async def create_portfolio(data: PortfolioCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Create a new portfolio (rejects duplicate names)."""
     existing = db.query(Portfolio).filter(Portfolio.name == data.name).first()
     if existing:
@@ -145,7 +145,7 @@ async def create_portfolio(data: PortfolioCreate, db: Session = Depends(get_db))
 
 
 @router.get("/portfolios/{portfolio_id}")
-async def get_portfolio(portfolio_id: int, db: Session = Depends(get_db)):
+async def get_portfolio(portfolio_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Get a single portfolio with positions summary and weight_pct."""
     portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
     if not portfolio:
@@ -296,7 +296,7 @@ async def get_portfolio_history(portfolio_id: int, db: Session = Depends(get_db)
 
 
 @router.delete("/portfolios/{portfolio_id}")
-async def delete_portfolio(portfolio_id: int, db: Session = Depends(get_db)):
+async def delete_portfolio(portfolio_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Delete a portfolio and all associated data."""
     portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
     if not portfolio:
@@ -316,6 +316,7 @@ async def list_transactions(
     limit: int = Query(100, le=500),
     offset: int = Query(0),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
     """List transactions, optionally filtered by portfolio or symbol."""
     query = db.query(Transaction)
@@ -336,7 +337,7 @@ async def list_transactions(
 
 
 @router.post("/transactions")
-async def create_transaction(data: TransactionCreate, db: Session = Depends(get_db)):
+async def create_transaction(data: TransactionCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """
     Record a new transaction and update the corresponding position.
     Supports BUY, SELL, DIVIDEND, DEPOSIT, WITHDRAWAL, STOCK_SPLIT, FEE.
@@ -377,7 +378,7 @@ async def create_transaction(data: TransactionCreate, db: Session = Depends(get_
             try:
                 tx_date = datetime.strptime(data.date, "%Y-%m-%d")
             except ValueError:
-                pass
+                raise HTTPException(status_code=400, detail=f"Invalid date format: '{data.date}'. Use YYYY-MM-DD or ISO 8601.")
 
     # Create transaction
     txn = Transaction(
@@ -415,7 +416,7 @@ async def create_transaction(data: TransactionCreate, db: Session = Depends(get_
 
 
 @router.delete("/transactions/{txn_id}")
-async def delete_transaction(txn_id: int, db: Session = Depends(get_db)):
+async def delete_transaction(txn_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Delete a transaction and properly recalculate positions to prevent desync."""
     txn = db.query(Transaction).filter(Transaction.id == txn_id).first()
     if not txn:

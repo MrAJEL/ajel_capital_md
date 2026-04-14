@@ -12,6 +12,7 @@ import logging
 
 from database import get_db
 from models.sql_models import Client, ClientFeeEvent, Portfolio, Transaction, Position, PortfolioHistory
+from core.security import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -77,7 +78,7 @@ class UpdateHWMRequest(BaseModel):
 # ── CRUD ──────────────────────────────────────────────────────────────────────
 
 @router.get("/clients")
-async def list_clients(db: Session = Depends(get_db)):
+async def list_clients(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """List all clients with portfolio count."""
     clients = db.query(Client).all()
     result = []
@@ -89,7 +90,7 @@ async def list_clients(db: Session = Depends(get_db)):
 
 
 @router.post("/clients")
-async def create_client(data: ClientCreate, db: Session = Depends(get_db)):
+async def create_client(data: ClientCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Create a new client. Initializes HWM to initial_capital."""
     entry_dt = None
     if data.entry_date:
@@ -126,7 +127,7 @@ async def create_client(data: ClientCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/clients/{client_id}")
-async def get_client(client_id: int, db: Session = Depends(get_db)):
+async def get_client(client_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Get client with portfolios and fee summary."""
     client = db.query(Client).filter(Client.id == client_id).first()
     if not client:
@@ -151,7 +152,7 @@ async def get_client(client_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/clients/{client_id}")
-async def update_client(client_id: int, data: ClientCreate, db: Session = Depends(get_db)):
+async def update_client(client_id: int, data: ClientCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Update a client."""
     client = db.query(Client).filter(Client.id == client_id).first()
     if not client:
@@ -173,7 +174,7 @@ async def update_client(client_id: int, data: ClientCreate, db: Session = Depend
 
 
 @router.delete("/clients/{client_id}")
-async def delete_client(client_id: int, db: Session = Depends(get_db)):
+async def delete_client(client_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Delete a client and all associated portfolios."""
     client = db.query(Client).filter(Client.id == client_id).first()
     if not client:
@@ -187,7 +188,7 @@ async def delete_client(client_id: int, db: Session = Depends(get_db)):
 # ── Fee Events ────────────────────────────────────────────────────────────────
 
 @router.get("/clients/{client_id}/fee-events")
-async def list_fee_events(client_id: int, db: Session = Depends(get_db)):
+async def list_fee_events(client_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """List all fee events for a client."""
     client = db.query(Client).filter(Client.id == client_id).first()
     if not client:
@@ -204,7 +205,7 @@ async def list_fee_events(client_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/clients/{client_id}/charge-fee")
-async def charge_fee(client_id: int, data: ChargeFeeRequest, db: Session = Depends(get_db)):
+async def charge_fee(client_id: int, data: ChargeFeeRequest, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """
     Charge a fee to a client. Records a ClientFeeEvent.
     For performance fees, updates the HWM to current AUM.
@@ -250,7 +251,7 @@ async def charge_fee(client_id: int, data: ChargeFeeRequest, db: Session = Depen
 
 
 @router.post("/clients/{client_id}/update-hwm")
-async def update_hwm(client_id: int, data: UpdateHWMRequest, db: Session = Depends(get_db)):
+async def update_hwm(client_id: int, data: UpdateHWMRequest, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Update client HWM. Only allows increases (HWM can only go up)."""
     client = db.query(Client).filter(Client.id == client_id).first()
     if not client:
@@ -270,7 +271,7 @@ async def update_hwm(client_id: int, data: UpdateHWMRequest, db: Session = Depen
 
 
 @router.post("/clients/{client_id}/add-capital")
-async def add_capital(client_id: int, amount: float, portfolio_id: Optional[int] = None, db: Session = Depends(get_db)):
+async def add_capital(client_id: int, amount: float, portfolio_id: Optional[int] = None, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     """Add capital to a client's AUM without affecting fee calculations or growth tracking.
     If portfolio_id is provided, also creates a DEPOSIT transaction in that portfolio."""
     client = db.query(Client).filter(Client.id == client_id).first()
@@ -282,9 +283,12 @@ async def add_capital(client_id: int, amount: float, portfolio_id: Optional[int]
 
     old_aum = client.aum or 0
     client.aum = old_aum + amount
-    # HWM increases by the deposit amount to avoid fake performance fees
+    # HWM must be set to max(current_hwm, new_aum) on deposits.
+    # Simply adding the deposit to HWM is wrong — if client is down 50% and deposits,
+    # HWM would overshoot, creating false performance fee triggers.
+    new_aum = client.aum
     if client.hwm is not None:
-        client.hwm = (client.hwm or 0) + amount
+        client.hwm = max(client.hwm or 0, new_aum)
         client.hwm_updated_at = datetime.utcnow()
 
     # Automatically create a DEPOSIT transaction if a target portfolio is specified

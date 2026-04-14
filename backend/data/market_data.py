@@ -410,12 +410,14 @@ class MarketDataClient:
                 }
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 429:
-                logger.warning(f"FMP Rate limit exceeded.")
+                logger.warning(f"FMP Rate limit exceeded for {symbol}.")
             else:
-                logger.warning(f"FMP fetch failed for {symbol}: {e}")
+                # Never log the URL — it contains the API key
+                logger.warning(f"FMP fetch failed for {symbol}: HTTP {e.response.status_code}")
             return None
         except Exception as e:
-            logger.warning(f"FMP fetch error for {symbol}: {e}")
+            # Never log the URL — it contains the API key
+            logger.warning(f"FMP fetch error for {symbol}: {type(e).__name__}")
             return None
 
     # ── Fear & Greed ──────────────────────────────────────────────────────────

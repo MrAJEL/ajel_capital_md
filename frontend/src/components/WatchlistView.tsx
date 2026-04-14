@@ -86,10 +86,10 @@ export default function WatchlistView({
                       width="100%" height="100%" frameBorder="0" allowFullScreen
                     />
                  </div>
-                 {watchlistScores[selectedAsset] && (
+                 {watchlistScores[selectedAsset] && !watchlistScores[selectedAsset].error && watchlistScores[selectedAsset].composite != null && (
                    <div style={{ flex: 1, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '1.5rem' }}>
                       <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}><Target size={18}/> Strategy Verdict</h3>
-                      
+
                       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
                          <div style={{ width: '120px', height: '120px', borderRadius: '50%', border: `8px solid ${getScoreColor(watchlistScores[selectedAsset].composite)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                             <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{watchlistScores[selectedAsset].composite}</span>

@@ -72,8 +72,22 @@ export function getStoredUser() {
 }
 
 export function isAuthenticated(): boolean {
+  // Auth relies on httpOnly cookies (set by server), not localStorage.
+  // We use the stored user object as a best-effort UI hint only.
+  // The real auth check happens on every API call — a 401 means the session expired.
   if (typeof window === 'undefined') return false;
   return !!localStorage.getItem('ajel_user');
+}
+
+export async function verifySession(): Promise<boolean> {
+  // True server-side session check — hits /auth/me with the httpOnly cookie.
+  try {
+    await apiFetch('/auth/me');
+    return true;
+  } catch {
+    localStorage.removeItem('ajel_user');
+    return false;
+  }
 }
 
 // ── Status ───────────────────────────────────────────────────────────────────
