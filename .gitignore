@@ -1,0 +1,41 @@
+# AJEL Capital — .gitignore
+# ==========================
+
+# Secrets
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.db
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+
+# Docker volumes
+postgres_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Debug / scratch scripts
+backend/debug_*.py
+backend/inspect_*.py
+
+# Logs
+*.log
+logs/
