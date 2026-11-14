@@ -1,0 +1,29 @@
+name: ✅ Tarea
+description: Algo concreto que hacer en un proyecto existente
+title: "[Tarea] "
+labels: ["tarea"]
+body:
+  - type: dropdown
+    id: proyecto
+    attributes:
+      label: Proyecto
+      options:
+        - AJEL Capital — backend
+        - AJEL Capital — frontend
+        - App PWA (apps/)
+        - Automatización
+        - Docs / repo
+    validations:
+      required: true
+  - type: textarea
+    id: que
+    attributes:
+      label: Qué hay que hacer
+    validations:
+      required: true
+  - type: textarea
+    id: hecho
+    attributes:
+      label: Cómo sé que está hecho
+      description: Criterio de aceptación verificable.
+      placeholder: "- [ ] ..."

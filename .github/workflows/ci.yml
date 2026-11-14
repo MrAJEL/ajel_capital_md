@@ -1,0 +1,81 @@
+# CI: lightweight checks that should only fail on real problems.
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (compileall)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m compileall -q backend automatizaciones apps
+
+  frontend:
+    name: Frontend (typecheck + build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npx tsc --noEmit
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+  pwa:
+    name: PWAs (manifest + files)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate every apps/*/ PWA
+        shell: python
+        run: |
+          import json, pathlib, sys
+          errors = []
+          for app in sorted(p for p in pathlib.Path("apps").iterdir() if p.is_dir()):
+              manifest = app / "manifest.webmanifest"
+              if not manifest.exists():
+                  continue  # not a PWA folder
+              try:
+                  data = json.loads(manifest.read_text(encoding="utf-8"))
+              except json.JSONDecodeError as exc:
+                  errors.append(f"{manifest}: invalid JSON ({exc})")
+                  continue
+              for key in ("name", "start_url", "display", "icons"):
+                  if key not in data:
+                      errors.append(f"{manifest}: missing '{key}'")
+              for icon in data.get("icons", []):
+                  if not (app / icon["src"]).exists():
+                      errors.append(f"{manifest}: icon not found {icon['src']}")
+              for required in ("index.html", "sw.js", "icons/icon-180.png"):
+                  if not (app / required).exists():
+                      errors.append(f"{app}: missing {required}")
+              print(f"ok {app}")
+          if errors:
+              print("\n".join(errors))
+              sys.exit(1)

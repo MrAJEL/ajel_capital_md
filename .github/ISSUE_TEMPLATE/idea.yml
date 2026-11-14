@@ -1,0 +1,36 @@
+name: 💡 Idea
+description: Captura una idea rápida (app, finanzas, investigación o automatización)
+title: "[Idea] "
+labels: ["idea"]
+body:
+  - type: dropdown
+    id: categoria
+    attributes:
+      label: Categoría
+      options:
+        - App PWA para iPhone
+        - Finanzas / AJEL Capital
+        - Investigación
+        - Automatización / bot
+    validations:
+      required: true
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema
+      description: ¿Qué duele hoy? Una o dos frases.
+    validations:
+      required: true
+  - type: textarea
+    id: solucion
+    attributes:
+      label: Idea / solución
+      description: Lo que se te ocurre, aunque sea vago.
+  - type: textarea
+    id: enlaces
+    attributes:
+      label: Enlaces o referencias
+  - type: markdown
+    attributes:
+      value: |
+        Siguiente paso: en Claude Code pide *"Investiga el issue #N y crea la nota en `ideas/` con la plantilla"*.
