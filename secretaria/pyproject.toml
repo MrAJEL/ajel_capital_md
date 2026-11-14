@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ajel-secretaria"
+version = "0.1.0"
+description = "Agente secretaria con Claude: agenda citas en Google Calendar con aprobación humana."
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=2.8",
+    "tzdata; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+google = [
+    "google-api-python-client>=2.100",
+    "google-auth-oauthlib>=1.2",
+]
+api = ["fastapi>=0.111"]
+dev = ["pytest>=8", "fastapi>=0.111", "httpx>=0.27"]
+
+[project.scripts]
+secretaria = "ajel_secretaria.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ajel_secretaria*"]
+
+[tool.setuptools.package-data]
+ajel_secretaria = ["perfiles/*.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

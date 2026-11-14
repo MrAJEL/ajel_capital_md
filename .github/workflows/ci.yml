@@ -26,6 +26,21 @@ jobs:
           python-version: "3.11"
       - run: python -m compileall -q backend automatizaciones apps
 
+  secretaria:
+    name: Secretaria (pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: secretaria
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[dev]"
+      - run: python -m pytest -q
+
   frontend:
     name: Frontend (typecheck + build)
     runs-on: ubuntu-latest

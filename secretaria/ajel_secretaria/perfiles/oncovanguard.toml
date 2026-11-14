@@ -1,0 +1,35 @@
+# Perfil de la secretaria para OncoVanguard.
+# Supuesto: OncoVanguard agenda citas de pacientes o consultas de oncología, así que la
+# privacidad estricta está ACTIVADA. Si no es así, ajusta este archivo.
+
+clave = "oncovanguard"
+nombre_negocio = "OncoVanguard"
+zona_horaria = "America/Mexico_City"
+calendario_id = "primary"     # recomendado: un calendario dedicado, no el personal
+
+duracion_cita_min = 30
+margen_min = 10
+antelacion_min_horas = 24     # citas con al menos 1 día de aviso
+dias_max_adelante = 45
+
+tono = "Cálido, sereno y respetuoso. Usa 'usted'. Frases cortas y claras."
+privacidad_estricta = true
+
+instrucciones_extra = """
+Tipos de cita: primera consulta (60 min), seguimiento (30 min), revisión de estudios (30 min).
+Título de la cita: "OncoVanguard · <tipo> · <iniciales del paciente>". Nunca el nombre completo.
+No des orientación médica, resultados ni pronósticos. Para cualquier duda clínica, o si la
+persona describe síntomas urgentes, indica que contacte a su médico o a urgencias y ofrece
+avisar al equipo. No pidas ni registres diagnósticos, tratamientos ni datos de salud.
+"""
+
+[horario]
+lun = ["08:00", "16:00"]
+mar = ["08:00", "16:00"]
+mie = ["08:00", "16:00"]
+jue = ["08:00", "16:00"]
+vie = ["08:00", "14:00"]
+
+[modelo]
+id = "claude-opus-5-5"
+esfuerzo = "medium"

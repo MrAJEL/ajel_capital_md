@@ -9,6 +9,7 @@ Contiene:
 2. **apps/** — mini‑apps para iPhone en forma de **PWA** (HTML/JS autocontenido, funcionan offline).
 3. **ideas/** — notas de investigación e ideas con una plantilla común.
 4. **automatizaciones/** — scripts y bots que corren con GitHub Actions (disparables desde el móvil).
+5. **secretaria/** — agente con Claude que agenda citas en Google Calendar con aprobación humana (AJEL Studio, OncoVanguard).
 
 > El repo debe ser **privado** y **sin GitHub Pages**. Ver [docs/SETUP_MOVIL.md](docs/SETUP_MOVIL.md).
 
@@ -30,6 +31,7 @@ Contiene:
 ├── apps/                    PWAs para iPhone (una carpeta por app) + _plantilla-pwa/
 ├── ideas/                   Ideas e investigación (_plantilla.md + índice)
 ├── automatizaciones/        Scripts + workflows de GitHub Actions
+├── secretaria/              Agente secretaria (Claude + Google Calendar), perfiles por negocio
 ├── docs/SETUP_MOVIL.md      Pasos manuales para trabajar desde el iPhone
 ├── .github/                 Plantillas de issues/PR y workflows (CI, automatizaciones)
 └── CLAUDE.md                Contexto y reglas para sesiones de Claude Code

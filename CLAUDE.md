@@ -28,6 +28,7 @@ sin Mac**: nada de iOS nativo (Swift/Xcode). Para apps de iPhone, **siempre PWA*
 | `apps/` | PWAs autocontenidas, una carpeta por app; partir de `apps/_plantilla-pwa/`. |
 | `ideas/` | Notas de ideas; copiar `ideas/_plantilla.md`, añadir al índice en `ideas/README.md`. |
 | `automatizaciones/` | Scripts Python (solo stdlib si se puede) + workflows en `.github/workflows/`. |
+| `secretaria/` | Paquete Python `ajel_secretaria`: agente Claude (Messages API, bucle manual de tools) + Google Calendar. Escrituras solo como propuestas que aprueba un humano. Perfiles TOML en `ajel_secretaria/perfiles/`. Tests: `cd secretaria && pip install -e ".[dev]" && python -m pytest -q`. |
 | `docs/` | Guías para el usuario. |
 
 ### Backend (detalles)

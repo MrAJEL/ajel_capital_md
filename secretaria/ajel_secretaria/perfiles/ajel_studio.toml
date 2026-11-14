@@ -1,0 +1,35 @@
+# Perfil de la secretaria para AJEL Studio (desarrollo de web apps).
+# Ajusta horario, duración y tono a tu operación real.
+
+clave = "ajel_studio"
+nombre_negocio = "AJEL Studio"
+zona_horaria = "America/Mexico_City"
+calendario_id = "primary"     # o el ID de un calendario dedicado a AJEL Studio
+
+duracion_cita_min = 45        # llamada de descubrimiento / revisión de proyecto
+margen_min = 15               # descanso entre reuniones
+antelacion_min_horas = 4      # no agendar con menos de 4 h de aviso
+dias_max_adelante = 30
+
+tono = "Cercano, profesional y directo. Tutea si el cliente tutea."
+privacidad_estricta = false
+
+instrucciones_extra = """
+Tipos de reunión habituales:
+- Descubrimiento (45 min): cliente nuevo que quiere una web app. Pide nombre, empresa y correo.
+- Revisión de avance (30 min): cliente con proyecto activo.
+- Entrega / demo (60 min).
+Si el cliente pregunta precios o plazos, no los inventes: di que se verán en la reunión.
+Pon como título "AJEL Studio · <tipo> · <cliente>".
+"""
+
+[horario]
+lun = ["09:00", "18:00"]
+mar = ["09:00", "18:00"]
+mie = ["09:00", "18:00"]
+jue = ["09:00", "18:00"]
+vie = ["09:00", "15:00"]
+
+[modelo]
+id = "claude-opus-5-5"
+esfuerzo = "medium"           # low | medium | high | xhigh | max
