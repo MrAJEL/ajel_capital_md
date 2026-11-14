@@ -1,0 +1,39 @@
+# Example automation: runs automatizaciones/ejemplo_resumen_diario.py
+# - On a schedule (cron, in UTC) and manually (workflow_dispatch).
+# - Manual run from the GitHub iPhone app: repo → Actions → "Ejemplo: resumen diario"
+#   → "Run workflow". The result appears in the run's Summary.
+# - Needs no secrets. Uses Actions minutes (private repos have a monthly free quota).
+name: "Ejemplo: resumen diario"
+
+on:
+  schedule:
+    # 07:17 UTC every weekday (avoid :00, GitHub delays runs at the top of the hour).
+    - cron: "17 7 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      saludo:
+        description: "Saludo para el resumen"
+        required: false
+        default: "Buenos días"
+
+permissions:
+  contents: read # read-only: the job only reads the repo
+
+concurrency:
+  group: ejemplo-resumen-diario
+  cancel-in-progress: true
+
+jobs:
+  resumen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Generar resumen
+        # inputs.saludo is empty on scheduled runs, so fall back to the default.
+        env:
+          SALUDO: ${{ inputs.saludo || 'Buenos días' }}
+        run: python automatizaciones/ejemplo_resumen_diario.py --saludo "$SALUDO"
