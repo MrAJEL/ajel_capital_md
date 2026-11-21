@@ -53,7 +53,7 @@ export default function ClientManagement({
       const res = await api.getClient(client.id);
       setSelectedClient(res);
       // Load fee events
-      const feRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/clients/${client.id}/fee-events`);
+      const feRes = await fetch(`${api.API_BASE}/clients/${client.id}/fee-events`);
       if (feRes.ok) {
         const feData = await feRes.json();
         setFeeEvents(feData.fee_events || []);
@@ -64,8 +64,7 @@ export default function ClientManagement({
   const handleChargeFee = async () => {
     if (!selectedClient || chargeFeeAmount <= 0) return;
     try {
-      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-      await fetch(`${base}/clients/${selectedClient.id}/charge-fee`, {
+      await fetch(`${api.API_BASE}/clients/${selectedClient.id}/charge-fee`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ event_type: chargeFeeType, amount: chargeFeeAmount, notes: `Charged via dashboard` }),
       });
@@ -78,8 +77,7 @@ export default function ClientManagement({
   const handleAddCapital = async () => {
     if (!selectedClient || addCapitalAmount <= 0) return;
     try {
-      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-      let url = `${base}/clients/${selectedClient.id}/add-capital?amount=${addCapitalAmount}`;
+      let url = `${api.API_BASE}/clients/${selectedClient.id}/add-capital?amount=${addCapitalAmount}`;
       if (addCapitalPortfolioId) url += `&portfolio_id=${addCapitalPortfolioId}`;
       await fetch(url, { method: 'POST' });
       setShowAddCapital(false);

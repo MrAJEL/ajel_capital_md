@@ -23,7 +23,7 @@ sin Mac**: nada de iOS nativo (Swift/Xcode). Para apps de iPhone, **siempre PWA*
 | Carpeta | Qué es |
 |---|---|
 | `backend/` | AJEL Capital API: FastAPI 0.111, SQLAlchemy 2, Pydantic 2, slowapi, python-jose, Redis opcional. Python 3.11 (Dockerfile `python:3.11-slim`). |
-| `frontend/` | Next.js 14.2 (App Router, `src/app`), React 18, TypeScript, Tailwind 3, Recharts, lucide-react. Cliente API en `src/lib/api.ts` (`NEXT_PUBLIC_API_URL`, cookies httpOnly). |
+| `frontend/` | Next.js 14.2 (App Router, `src/app`), React 18, TypeScript, Tailwind 3, Recharts, lucide-react. Cliente API en `src/lib/api.ts`: llama a `/api` en el mismo origen y `next.config.js` lo reenvía al backend (`API_PROXY_TARGET`; en Docker `http://backend:8000`). Cookies httpOnly. |
 | `frontend/public/AJEL_Capital_Trading_Webapp/` | HTML estático grande generado externamente; no editar sin motivo. |
 | `apps/` | PWAs autocontenidas, una carpeta por app; partir de `apps/_plantilla-pwa/`. |
 | `ideas/` | Notas de ideas; copiar `ideas/_plantilla.md`, añadir al índice en `ideas/README.md`. |

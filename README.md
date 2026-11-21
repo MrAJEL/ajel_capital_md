@@ -26,7 +26,7 @@ Contiene:
 │   └── database.py          DATABASE_URL (Postgres) o SQLite local por defecto
 ├── frontend/                AJEL Capital UI (Next.js 14 App Router, React 18, Tailwind, Recharts)
 ├── docker-compose.yml       frontend :3000, backend :8000, Postgres 16, Redis 7
-├── START_AI_PLATFORM.bat    Arranque en Windows (docker-compose up -d --build)
+├── START_AI_PLATFORM.bat    Arranque en Windows: crea .env, levanta Docker y abre Chrome
 ├── .env.example             Variables de entorno (copiar a .env, nunca commitear .env)
 ├── apps/                    PWAs para iPhone (una carpeta por app) + _plantilla-pwa/
 ├── ideas/                   Ideas e investigación (_plantilla.md + índice)
@@ -75,7 +75,7 @@ Frontend (Node 18+):
 ```bash
 cd frontend
 npm ci
-npm run dev          # http://localhost:3000, API en NEXT_PUBLIC_API_URL (por defecto http://localhost:8000/api)
+npm run dev          # http://localhost:3000; /api se reenvía al backend (API_PROXY_TARGET, por defecto http://localhost:8000)
 npm run build        # build de producción (también hace typecheck)
 ```
 

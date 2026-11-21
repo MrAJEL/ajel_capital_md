@@ -2,11 +2,11 @@
  * AJEL Capital — API Client
  * ==========================
  * All fetch calls go through here.
- * API URL configurable via env var, defaults to localhost:8000.
+ * API URL configurable via env var; defaults to same-origin /api (proxied by next.config.js).
  * Auth token attached automatically when available.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 function getAuthHeaders(): Record<string, string> {
   // We now rely on httpOnly cookies
