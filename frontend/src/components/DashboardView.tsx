@@ -34,15 +34,7 @@ export default function DashboardView({
     }));
   }
 
-  if (equityCurveData.length === 0) {
-    equityCurveData = [
-      { date: 'Ene 24', invested: 10000, cost: 8000 },
-      { date: 'Jun 24', invested: 15000, cost: 12000 },
-      { date: 'Ene 25', invested: 20000, cost: 18000 },
-      { date: 'Jun 25', invested: 25000, cost: 22000 },
-      { date: 'Dic 25', invested: totalInvested || 30000, cost: totalMarketValue || 28000 },
-    ];
-  }
+  const hasCurveData = equityCurveData.length > 0;
 
   // ── Pie Chart: Portfolio Allocation ─────────────────────────────────────
   const pieData = activePositions
@@ -58,8 +50,12 @@ export default function DashboardView({
   const totalPieValue = pieData.reduce((s: number, d: any) => s + d.value, 0);
 
   // Return Calcs Engine
+  // Ratios are undefined with fewer than 2 points or (near-)zero volatility;
+  // show "—" instead of dividing by a tiny epsilon.
+  const NO_DATA = '—';
+  const MIN_STD = 1e-6;
   const calcSharpe = (curve: any[]) => {
-    if (curve.length < 2) return "0.00";
+    if (curve.length < 2) return NO_DATA;
     let rets = [];
     for(let i=1; i<curve.length; i++) {
         const prev = curve[i-1].invested + curve[i-1].cost;
@@ -67,12 +63,13 @@ export default function DashboardView({
         rets.push(prev > 0 ? (curr - prev) / prev : 0);
     }
     const mean = rets.reduce((a,b)=>a+b,0) / rets.length;
-    const std = Math.sqrt(rets.reduce((a,b)=>a+Math.pow(b-mean,2),0) / rets.length) || 0.0001;
+    const std = Math.sqrt(rets.reduce((a,b)=>a+Math.pow(b-mean,2),0) / rets.length);
+    if (!Number.isFinite(std) || std < MIN_STD) return NO_DATA;
     return (((mean - 0.04/252) / std) * Math.sqrt(252)).toFixed(2);
   };
 
   const calcSortino = (curve: any[]) => {
-    if (curve.length < 2) return "0.00";
+    if (curve.length < 2) return NO_DATA;
     let rets = [];
     for(let i=1; i<curve.length; i++) {
         const prev = curve[i-1].invested + curve[i-1].cost;
@@ -81,11 +78,14 @@ export default function DashboardView({
     }
     const mean = rets.reduce((a,b)=>a+b,0) / rets.length;
     const downRets = rets.filter(r => r < 0);
-    const downStd = Math.sqrt(downRets.reduce((a,b)=>a+Math.pow(b,2),0) / (downRets.length || 1)) || 0.0001;
+    if (downRets.length === 0) return NO_DATA;
+    const downStd = Math.sqrt(downRets.reduce((a,b)=>a+Math.pow(b,2),0) / downRets.length);
+    if (!Number.isFinite(downStd) || downStd < MIN_STD) return NO_DATA;
     return (((mean - 0.04/252) / downStd) * Math.sqrt(252)).toFixed(2);
   };
 
   const calcMaxDrawdown = (curve: any[]) => {
+    if (curve.length < 2) return NO_DATA;
     let peak = 0;
     let maxDd = 0;
     for(let pt of curve) {
@@ -96,7 +96,7 @@ export default function DashboardView({
         if (dd > maxDd) maxDd = dd;
       }
     }
-    return (maxDd * 100).toFixed(2);
+    return `${(maxDd * 100).toFixed(2)}%`;
   };
 
   const driftAlerts = (pie: any[]) => {
@@ -186,7 +186,7 @@ export default function DashboardView({
         </div>
         <div style={{ padding: '1rem', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Max Drawdown</div>
-          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--danger)' }}>{calcMaxDrawdown(equityCurveData)}%</div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--danger)' }}>{calcMaxDrawdown(equityCurveData)}</div>
         </div>
         <div style={{ padding: '1rem', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Rebalance Alerts</div>
@@ -238,6 +238,11 @@ export default function DashboardView({
         {/* Equity Curve */}
         <div style={{ padding: '1.25rem', borderRadius: 'var(--radius)', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--text-primary)' }}>📈 Curva de Capital</h3>
+          {!hasCurveData ? (
+            <div style={{ height: '260px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              Sin datos
+            </div>
+          ) : (
           <div style={{ height: '260px', width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={equityCurveData}>
@@ -260,6 +265,7 @@ export default function DashboardView({
               </AreaChart>
             </ResponsiveContainer>
           </div>
+          )}
         </div>
       </div>
 
